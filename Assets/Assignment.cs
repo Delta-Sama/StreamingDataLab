@@ -7,6 +7,7 @@ Pixel RPG characters created by Sean Browning.
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor;
 using UnityEngine;
 
 
@@ -191,42 +192,138 @@ Good luck, journey well.
 
 static public class AssignmentPart2
 {
+    private const int StatsDataIndex = 0;
+    private const int EquipmentDataIndex = 1;
+
+    private static string currentFileName = "";
 
     static public void GameStart()
     {
 
         GameContent.RefreshUI();
-
     }
 
     static public List<string> GetListOfPartyNames()
     {
-        return new List<string>() {
-            "sample 1",
-            "sample 2",
-            "sample 3"
-        };
+        List<string> PartySaves = new List<string>();
+
+        string path = Application.dataPath + Path.DirectorySeparatorChar + "Data";
+        DirectoryInfo info = new DirectoryInfo(path);
+        FileInfo[] FileInfo = info.GetFiles();
+
+        foreach (FileInfo file in FileInfo)
+        {
+            if (file.Extension == ".txt")
+            {
+                string name = file.Name.Split('.')[0];
+                PartySaves.Add(name);
+            }
+        }
+
+        return PartySaves;
 
     }
 
     static public void LoadPartyDropDownChanged(string selectedName)
     {
+        currentFileName = selectedName;
+
+        LoadSlot(currentFileName);
+
         GameContent.RefreshUI();
     }
 
     static public void SavePartyButtonPressed()
     {
+        if (!AssetDatabase.IsValidFolder("Assets" + Path.DirectorySeparatorChar + "Data"))
+        {
+            AssetDatabase.CreateFolder("Assets", "Data");
+        }
+
+        SaveSlot(currentFileName);
+
+        GameContent.RefreshUI();
+    }
+
+    static void SaveSlot(string fileName)
+    {
+        string path = Application.dataPath + Path.DirectorySeparatorChar + "Data" + Path.DirectorySeparatorChar + fileName + ".txt";
+        using (StreamWriter sWriter = new StreamWriter(path))
+        {
+            foreach (PartyCharacter pc in GameContent.partyCharacters)
+            {
+                sWriter.WriteLine(StatsDataIndex + "," + pc.classID + "," +
+                                  pc.health + "," +
+                                  pc.mana + "," +
+                                  pc.strength + "," +
+                                  pc.agility + "," +
+                                  pc.wisdom);
+
+                foreach (int eq in pc.equipment)
+                {
+                    sWriter.WriteLine(EquipmentDataIndex + "," + eq.ToString());
+                }
+            }
+
+            sWriter.Close();
+        }
+    }
+
+    static public void LoadSlot(string fileName)
+    {
+        GameContent.ClearCharacters();
+
+        string path = Application.dataPath + Path.DirectorySeparatorChar + "Data" + Path.DirectorySeparatorChar + fileName + ".txt";
+
+        using (StreamReader sReader = new StreamReader(path))
+        {
+            string line;
+
+            while ((line = sReader.ReadLine()) != null)
+            {
+                string[] csv = line.Split(',');
+
+                int signifier = int.Parse(csv[0]);
+
+                if (signifier == StatsDataIndex)
+                {
+                    PartyCharacter character = new PartyCharacter(int.Parse(csv[1]),
+                        int.Parse(csv[2]),
+                        int.Parse(csv[3]),
+                        int.Parse(csv[4]),
+                        int.Parse(csv[5]),
+                        int.Parse(csv[6]));
+
+                    GameContent.partyCharacters.AddLast(character);
+                }
+                else if (signifier == EquipmentDataIndex)
+                {
+                    GameContent.partyCharacters.Last.Value.equipment.AddLast(int.Parse(csv[1]));
+                }
+            }
+
+            sReader.Close();
+        }
+
         GameContent.RefreshUI();
     }
 
     static public void NewPartyButtonPressed()
     {
+        if (GameContent.GetPartyNameFromInput().Length > 0)
+        {
+            SaveSlot(GameContent.GetPartyNameFromInput());
 
+            GameContent.RefreshUI();
+        }
     }
 
     static public void DeletePartyButtonPressed()
     {
+        string path = Application.dataPath + "/" + "Data" + "/" + currentFileName + ".txt";
+        FileUtil.DeleteFileOrDirectory(path);
 
+        GameContent.RefreshUI();
     }
 
 }

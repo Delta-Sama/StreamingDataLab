@@ -82,7 +82,7 @@ static public class GameContent
     
     static public void ClearCharacters()
     {
-        partyCharacters.Clear();
+        GameContent.partyCharacters.Clear();
     }
 
     static public void AddCharacter(int classId, int health, int mana, int strength, int agility, int wisdom, int[] equipment)
@@ -296,6 +296,11 @@ static public class GameContent
     static public void SetDropdownOption(string optionName)
     {
         systemManager.GetComponent<SystemManager>().SetDropdownOption(optionName);
+    }
+
+    static public string GetCurrentDropdownName()
+    {
+        return systemManager.GetComponent<SystemManager>().GetCurrentDropdownName();
     }
 
     static public void ReassignDropdownValue()

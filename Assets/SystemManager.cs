@@ -73,9 +73,11 @@ public class SystemManager : MonoBehaviour
 
         GameContent.SetSystemManager(gameObject);
 
-        AssignmentPart2.GameStart();
         GameContent.RerollParty();
+        AssignmentPart2.GameStart();
 
+        RefreshUI();
+        
         int menuIndex = loadPartyDropDown.GetComponent<Dropdown>().value;
         if (menuIndex > 0)
         {
@@ -83,9 +85,8 @@ public class SystemManager : MonoBehaviour
             string value = menuOptions[menuIndex].text;
             AssignmentPart2.LoadPartyDropDownChanged(value);
         }
-
-        RefreshUI();
-
+        else
+            Debug.Log("No menu index");
     }
 
     void Update()
@@ -137,7 +138,6 @@ public class SystemManager : MonoBehaviour
 
         }
 
-        Debug.Log("1");
         if (partyCharacters != null)
         {
             while (partyCharacters.Count > 0)
@@ -148,9 +148,11 @@ public class SystemManager : MonoBehaviour
             }
         }
         else
+        {
+            Debug.Log("Create partyCharacters");
             partyCharacters = new LinkedList<GameObject>();
+        }
 
-        Debug.Log("2");
         if (GameContent.partyCharacters != null)
         {
             if (GameContent.partyCharacters.Count > 0)
@@ -182,7 +184,6 @@ public class SystemManager : MonoBehaviour
                 }
             }
         }
-        Debug.Log("3");
     }
 
     public void RerollButtonPressed()
@@ -213,6 +214,13 @@ public class SystemManager : MonoBehaviour
     public void ReassignDropdownValue()
     {
         loadPartyDropDown.GetComponent<Dropdown>().value = 0;
+    }
+
+    public string GetCurrentDropdownName()
+    {
+        List<Dropdown.OptionData> menuOptions = loadPartyDropDown.GetComponent<Dropdown>().options;
+
+        return menuOptions[loadPartyDropDown.GetComponent<Dropdown>().value].text;
     }
 
     public void SetDropdownOption(string optionName = "")
@@ -262,6 +270,7 @@ public class SystemManager : MonoBehaviour
 
     public void ClearPartyNameFromInput()
     {
+        Debug.Log(partyNameInputField.GetComponentsInChildren<Text>()[1].text);
         partyNameInputField.GetComponentsInChildren<Text>()[1].text = "";
     }
 

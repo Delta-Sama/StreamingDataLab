@@ -75,6 +75,15 @@ public class SystemManager : MonoBehaviour
 
         AssignmentPart2.GameStart();
         GameContent.RerollParty();
+
+        int menuIndex = loadPartyDropDown.GetComponent<Dropdown>().value;
+        if (menuIndex > 0)
+        {
+            List<Dropdown.OptionData> menuOptions = loadPartyDropDown.GetComponent<Dropdown>().options;
+            string value = menuOptions[menuIndex].text;
+            AssignmentPart2.LoadPartyDropDownChanged(value);
+        }
+
         RefreshUI();
 
     }
@@ -113,10 +122,10 @@ public class SystemManager : MonoBehaviour
 
             //loadPartyDropDown.GetComponent<Dropdown>().setl
 
-            //             int menuIndex = loadPartyDropDown.GetComponent<Dropdown>().value;
-            // List<Dropdown.OptionData> menuOptions = loadPartyDropDown.GetComponent<Dropdown>().options;
-            // string value = menuOptions[menuIndex].text;
-            // AssignmentPart2.LoadPartyDropDownChanged(value);
+            /*int menuIndex = loadPartyDropDown.GetComponent<Dropdown>().value;
+            List<Dropdown.OptionData> menuOptions = loadPartyDropDown.GetComponent<Dropdown>().options;
+            string value = menuOptions[menuIndex].text;
+            AssignmentPart2.LoadPartyDropDownChanged(value);*/
 
 
             Dropdown dropdown = loadPartyDropDown.GetComponent<Dropdown>();
@@ -128,7 +137,7 @@ public class SystemManager : MonoBehaviour
 
         }
 
-
+        Debug.Log("1");
         if (partyCharacters != null)
         {
             while (partyCharacters.Count > 0)
@@ -141,7 +150,7 @@ public class SystemManager : MonoBehaviour
         else
             partyCharacters = new LinkedList<GameObject>();
 
-
+        Debug.Log("2");
         if (GameContent.partyCharacters != null)
         {
             if (GameContent.partyCharacters.Count > 0)
@@ -173,7 +182,7 @@ public class SystemManager : MonoBehaviour
                 }
             }
         }
-
+        Debug.Log("3");
     }
 
     public void RerollButtonPressed()
@@ -201,6 +210,33 @@ public class SystemManager : MonoBehaviour
         AssignmentPart2.LoadPartyDropDownChanged(value);
     }
 
+    public void ReassignDropdownValue()
+    {
+        loadPartyDropDown.GetComponent<Dropdown>().value = 0;
+    }
+
+    public void SetDropdownOption(string optionName = "")
+    {
+        List<Dropdown.OptionData> menuOptions = loadPartyDropDown.GetComponent<Dropdown>().options;
+
+        if (optionName == "")
+        {
+            loadPartyDropDown.GetComponent<Dropdown>().value = 0;
+            return;
+        }
+
+        int num = 0;
+        foreach (var option in menuOptions)
+        {
+            Debug.Log(optionName + " vs " + option.text);
+            if (optionName == option.text)
+            {
+                loadPartyDropDown.GetComponent<Dropdown>().value = num;
+                break;
+            }
+            num += 1;
+        }
+    }
 
     public void SaveButton2Pressed()
     {
@@ -222,6 +258,11 @@ public class SystemManager : MonoBehaviour
 
         return partyNameInputField.GetComponentsInChildren<Text>()[1].text;
 
+    }
+
+    public void ClearPartyNameFromInput()
+    {
+        partyNameInputField.GetComponentsInChildren<Text>()[1].text = "";
     }
 
 }

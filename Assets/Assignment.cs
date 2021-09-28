@@ -195,39 +195,76 @@ static public class AssignmentPart2
     private const int StatsDataIndex = 0;
     private const int EquipmentDataIndex = 1;
 
+    private const int LastIndexSpecifier = 1;
+    private const int FileIndexAndNameSpecifier = 2;
+
     private static string currentFileName = "";
+    private static string indexPath = Application.dataPath + Path.DirectorySeparatorChar + "Data" + Path.DirectorySeparatorChar + "indexes.txt";
+
+    private static int lastIndex = 0;
+    private static Dictionary<int,string> indexesDict;
 
     static public void GameStart()
     {
+        if (!AssetDatabase.IsValidFolder("Assets" + Path.DirectorySeparatorChar + "Data"))
+        {
+            AssetDatabase.CreateFolder("Assets", "Data");
+            StreamWriter sWriter = new StreamWriter(indexPath);
+            sWriter.WriteLine(LastIndexSpecifier + "," + "0");
+            sWriter.Close();
+        }
+
+        LoadDictionary();
 
         GameContent.RefreshUI();
+    }
+
+    static public void LoadDictionary()
+    {
+        indexesDict = new Dictionary<int, string>();
+
+        StreamReader sReader = new StreamReader(indexPath);
+
+        string line;
+
+        while ((line = sReader.ReadLine()) != null)
+        {
+            string[] csv = line.Split(',');
+            int lineType = int.Parse(csv[0]);
+
+            if (lineType == LastIndexSpecifier)
+            {
+                lastIndex = int.Parse(csv[1]);
+            }
+            else if (lineType == FileIndexAndNameSpecifier)
+            {
+                indexesDict.Add(int.Parse(csv[1]), csv[2]);
+            }
+        }
+
+        sReader.Close();
     }
 
     static public List<string> GetListOfPartyNames()
     {
         List<string> PartySaves = new List<string>();
 
-        string path = Application.dataPath + Path.DirectorySeparatorChar + "Data";
-        DirectoryInfo info = new DirectoryInfo(path);
-        FileInfo[] FileInfo = info.GetFiles();
-
-        foreach (FileInfo file in FileInfo)
+        foreach (var party in indexesDict)
         {
-            if (file.Extension == ".txt")
-            {
-                string name = file.Name.Split('.')[0];
-                PartySaves.Add(name);
-            }
+            PartySaves.Add(party.Value);
+            Debug.Log("Add " + party.Value);
         }
 
-        return PartySaves;
+        Debug.Log("4");
 
+        return PartySaves;
     }
 
     static public void LoadPartyDropDownChanged(string selectedName)
     {
         currentFileName = selectedName;
 
+        Debug.Log("Load: " + selectedName);
         LoadSlot(currentFileName);
 
         GameContent.RefreshUI();
@@ -235,19 +272,62 @@ static public class AssignmentPart2
 
     static public void SavePartyButtonPressed()
     {
-        if (!AssetDatabase.IsValidFolder("Assets" + Path.DirectorySeparatorChar + "Data"))
-        {
-            AssetDatabase.CreateFolder("Assets", "Data");
-        }
-
         SaveSlot(currentFileName);
 
         GameContent.RefreshUI();
     }
 
-    static void SaveSlot(string fileName)
+    static int GetPartyIndex(string partyName)
     {
-        string path = Application.dataPath + Path.DirectorySeparatorChar + "Data" + Path.DirectorySeparatorChar + fileName + ".txt";
+        int index = -1;
+
+        foreach (var party in indexesDict)
+        {
+            if (party.Value == partyName)
+            {
+                index = party.Key;
+                break;
+            }
+        }
+
+        return index;
+    }
+
+    static void SaveSlot(string partyName)
+    {
+        int index = GetPartyIndex(partyName);
+
+        if (index < 0)
+        {
+            StreamReader sReader = new StreamReader(indexPath);
+
+            lastIndex += 1;
+            index = lastIndex;
+
+            string file = "";
+            string line;
+
+            while ((line = sReader.ReadLine()) != null)
+            {
+                string[] csv = line.Split(',');
+                int lineType = int.Parse(csv[0]);
+
+                if (lineType == LastIndexSpecifier)
+                    file += LastIndexSpecifier + "," + lastIndex + '\n';
+                else if (lineType == FileIndexAndNameSpecifier)
+                    file += line;
+            }
+
+            sReader.Close();
+
+            StreamWriter sWriter = new StreamWriter(indexPath);
+            sWriter.Write(file);
+            sWriter.WriteLine(FileIndexAndNameSpecifier + "," + lastIndex + "," + partyName);
+
+            sWriter.Close();
+        }
+
+        string path = Application.dataPath + Path.DirectorySeparatorChar + "Data" + Path.DirectorySeparatorChar + "File" + index + ".txt";
         using (StreamWriter sWriter = new StreamWriter(path))
         {
             foreach (PartyCharacter pc in GameContent.partyCharacters)
@@ -267,13 +347,23 @@ static public class AssignmentPart2
 
             sWriter.Close();
         }
+
+        GameContent.ClearPartyNameFromInput();
     }
 
-    static public void LoadSlot(string fileName)
+    static public void LoadSlot(string partyName)
     {
+        int index = GetPartyIndex(partyName);
+
+        if (index < 0)
+        {
+            Debug.Log("nothing to load: " + partyName);
+            return;
+        }
+
         GameContent.ClearCharacters();
 
-        string path = Application.dataPath + Path.DirectorySeparatorChar + "Data" + Path.DirectorySeparatorChar + fileName + ".txt";
+        string path = Application.dataPath + Path.DirectorySeparatorChar + "Data" + Path.DirectorySeparatorChar + "File" + index + ".txt";
 
         using (StreamReader sReader = new StreamReader(path))
         {
@@ -314,6 +404,8 @@ static public class AssignmentPart2
         {
             SaveSlot(GameContent.GetPartyNameFromInput());
 
+            currentFileName = GameContent.GetPartyNameFromInput();
+
             GameContent.RefreshUI();
         }
     }
@@ -324,6 +416,8 @@ static public class AssignmentPart2
         FileUtil.DeleteFileOrDirectory(path);
 
         GameContent.RefreshUI();
+
+        GameContent.ReassignDropdownValue();
     }
 
 }

@@ -293,6 +293,21 @@ static public class GameContent
         return systemManager.GetComponent<SystemManager>().GetPartyNameFromInput();
     }
 
+    static public void SetDropdownOption(string optionName)
+    {
+        systemManager.GetComponent<SystemManager>().SetDropdownOption(optionName);
+    }
+
+    static public void ReassignDropdownValue()
+    {
+        systemManager.GetComponent<SystemManager>().ReassignDropdownValue();
+    }
+
+    static public void ClearPartyNameFromInput()
+    {
+        systemManager.GetComponent<SystemManager>().ClearPartyNameFromInput();
+    }
+
 }
 
 public partial class PartyCharacter

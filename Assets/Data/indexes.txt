@@ -1,5 +1,4 @@
-1,9
+1,12
 2,1,RedMage
 2,2,TwoThiefs
-2,3,Woman
-2,4,ManAndWom
+2,12,OrangeMage

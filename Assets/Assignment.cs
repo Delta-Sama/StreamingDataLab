@@ -430,7 +430,7 @@ static public class AssignmentPart2
 
         if (index < 0) return;
 
-
+        RemovePartyOfIndex(index);
 
         string path = Application.dataPath + "/" + "Data" + "/" + "File" + index + ".txt";
         FileUtil.DeleteFileOrDirectory(path);
@@ -440,6 +440,37 @@ static public class AssignmentPart2
         GameContent.ReassignDropdownValue();
     }
 
+    static public void RemovePartyOfIndex(int index)
+    {
+        indexesDict.Remove(index);
+
+        StreamReader sReader = new StreamReader(indexPath);
+
+        lastIndex += 1;
+
+        string file = "";
+        string line;
+
+        while ((line = sReader.ReadLine()) != null)
+        {
+            string[] csv = line.Split(',');
+            int lineType = int.Parse(csv[0]);
+
+            if (lineType == FileIndexAndNameSpecifier)
+            {
+                if (int.Parse(csv[1]) == index)
+                    continue;
+            }
+
+            file += line + "\n";
+        }
+
+        sReader.Close();
+
+        StreamWriter sWriter = new StreamWriter(indexPath);
+        sWriter.Write(file);
+        sWriter.Close();
+    }
 }
 
 #endregion
